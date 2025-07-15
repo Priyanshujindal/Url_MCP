@@ -96,7 +96,8 @@ mcp = FastMCP("url-injector")
 def extract_keywords(text: str) -> List[str]:
     # Simple: split, remove stopwords, deduplicate, filter short
     stopwords = set([
-        "the", "is", "in", "at", "of", "a", "an", "and", "or", "to", "for", "with", "on", "by", "as", "from", "using", "how", "do", "i", "you", "it", "this", "that", "what", "when", "where", "which", "be", "are", "was", "were", "can", "should", "could", "would", "will", "may", "might"
+        "the", "is", "in", "at", "of", "a", "an", "and", "or", "to", "for", "with", "on", "by", "as", "from", "using", "how", "do", "i", "you", "it", "this", "that", "what", "when", "where", "which", "be", "are", "was", "were",
+        "can", "should", "could", "would", "will", "may", "might"
     ])
     words = re.findall(r"\b\w+\b", text.lower())
     keywords = [w for w in words if w not in stopwords and len(w) > 2]
