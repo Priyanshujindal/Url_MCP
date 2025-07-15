@@ -106,7 +106,7 @@ def extract_keywords(text: str) -> List[str]:
     keywords = [
         w for w in words if w not in stopwords and len(w) > 2
     ]
-    # deduplicate, preserve order   
+    # deduplicate, preserve order
     return list(dict.fromkeys(keywords))
 
 
