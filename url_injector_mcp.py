@@ -173,6 +173,7 @@ def track_metrics(endpoint):
 
 # --- MCP TOOL ---
 
+
 @mcp.tool()
 @track_metrics("inject_urls_into_prompt")
 async def inject_urls_into_prompt(user_prompt: str) -> str:
