@@ -2,7 +2,7 @@ import os
 import re
 import time
 import logging
-from typing import Any, List
+from typing import List
 import httpx
 from bs4 import BeautifulSoup
 from mcp.server.fastmcp import FastMCP
@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware import Middleware
 from starlette.applications import Starlette
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_429_TOO_MANY_REQUESTS
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram
 import functools
 
 # Load environment variables from .env if present (for local dev)
@@ -63,7 +63,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.request_counts[client_ip] = (count, ts)
         if count > self.max_requests:
             logger.warning(f"Rate limit exceeded for {client_ip}")
-            return JSONResponse({"detail": "Rate limit exceeded"}, status_code=HTTP_429_TOO_MANY_REQUESTS)
+            return JSONResponse({"detail": "Rate limit exceeded"},
+                                status_code=HTTP_429_TOO_MANY_REQUESTS)
         return await call_next(request)
 
 # --- AUTHENTICATION ---
@@ -74,7 +75,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer ") or auth.replace("Bearer ", "") != API_KEY:
             logger.warning("Unauthorized access attempt.")
-            return JSONResponse({"detail": "Unauthorized"}, status_code=HTTP_401_UNAUTHORIZED)
+            return JSONResponse({"detail": "Unauthorized"},
+                                status_code=HTTP_401_UNAUTHORIZED)
         return await call_next(request)
 
 # --- MCP SERVER ---
