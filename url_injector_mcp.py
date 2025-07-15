@@ -192,8 +192,11 @@ def build_app():
 
 if __name__ == "__main__":
     logger.info("Starting url-injector-mcp server...")
+    port = int(os.environ.get("PORT", 8000))
     mcp.run(
-        transport="sse"
+        transport="sse",
+        host="0.0.0.0",
+        port=port
     ) 
 # Note: To change the port in MCP 1.x, set the PORT environment variable before running this script.
 # Example (PowerShell): $env:PORT=8001; python url_injector_mcp.py
