@@ -22,7 +22,8 @@ except ImportError:
 
 # --- CONFIGURATION ---
 API_KEY = os.getenv("MCP_API_KEY", "change-me-please")
-RATE_LIMIT = int(os.getenv("MCP_RATE_LIMIT", "60"))  # requests per minute per IP
+RATE_LIMIT = int(os.getenv("MCP_RATE_LIMIT", "60"))
+# requests per minute per IP
 ALLOWED_DOMAINS = [
     "docs.python.org", "realpython.com", "stackoverflow.com", "w3schools.com",
     "geeksforgeeks.org", "tutorialspoint.com", "pythonbasics.org", "pypi.org",
@@ -96,14 +97,17 @@ mcp = FastMCP("url-injector")
 def extract_keywords(text: str) -> List[str]:
     # Simple: split, remove stopwords, deduplicate, filter short
     stopwords = set([
-        "the", "is", "in", "at", "of", "a", "an", "and", "or", "to", "for", "with", "on", "by", "as", "from", "using", "how", "do", "i", "you", "it", "this", "that", "what", "when", "where", "which", "be", "are", "was", "were",
+        "the", "is", "in", "at", "of", "a", "an", "and", "or", "to", "for", "with",
+        "on", "by", "as", "from", "using", "how", "do", "i", "you", "it", "this",
+        "that", "what", "when", "where", "which", "be", "are", "was", "were",
         "can", "should", "could", "would", "will", "may", "might"
     ])
     words = re.findall(r"\b\w+\b", text.lower())
     keywords = [
         w for w in words if w not in stopwords and len(w) > 2
     ]
-    return list(dict.fromkeys(keywords))  # deduplicate, preserve order
+    # deduplicate, preserve order   
+    return list(dict.fromkeys(keywords))
 
 
 # --- SIMPLE ASYNC CACHE FOR WEB SEARCH ---
