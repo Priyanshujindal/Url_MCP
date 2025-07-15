@@ -100,7 +100,9 @@ def extract_keywords(text: str) -> List[str]:
         "can", "should", "could", "would", "will", "may", "might"
     ])
     words = re.findall(r"\b\w+\b", text.lower())
-    keywords = [w for w in words if w not in stopwords and len(w) > 2]
+    keywords = [
+        w for w in words if w not in stopwords and len(w) > 2
+    ]
     return list(dict.fromkeys(keywords))  # deduplicate, preserve order
 
 
@@ -204,7 +206,9 @@ async def inject_urls_into_prompt(user_prompt: str) -> str:
     else:
         url_section = "\n\n(No relevant resources found.)"
     augmented = user_prompt.strip() + url_section
-    logger.info(f"Returning augmented prompt with {len(filtered)} URLs.")
+    logger.info(
+        f"Returning augmented prompt with {len(filtered)} URLs."
+    )
     return augmented
 
 
