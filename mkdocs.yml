@@ -1,0 +1,11 @@
+site_name: URL Injector MCP Server
+repo_url: https://github.com/yourusername/url-injector-mcp
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Deployment: deployment.md
+  - API Reference: api.md
+  - Contributing: ../CONTRIBUTING.md
+  - License: ../LICENSE
+theme:
+  name: material 

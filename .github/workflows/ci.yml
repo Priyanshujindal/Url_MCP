@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Lint
+        run: |
+          pip install flake8
+          flake8 url_injector_mcp.py
+      - name: Test import
+        run: |
+          python -c "import url_injector_mcp"
+      - name: Install test dependencies
+        run: |
+          pip install pytest pytest-cov
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=url_injector_mcp --cov-report=term-missing --cov-fail-under=80
+      - name: Build Docker image
+        run: |
+          docker build -t url-injector-mcp . 
