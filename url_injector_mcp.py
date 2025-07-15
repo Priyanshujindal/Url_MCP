@@ -9,8 +9,6 @@ from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.middleware import Middleware
-from starlette.applications import Starlette
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_429_TOO_MANY_REQUESTS
 from prometheus_client import Counter, Histogram
 import functools
@@ -32,14 +30,18 @@ ALLOWED_DOMAINS = [
 ]
 MAX_URLS = 10
 SEARCH_ENGINE = "https://duckduckgo.com/html/?q="
-USER_AGENT = "Mozilla/5.0 (compatible; MCPBot/1.0; +https://modelcontextprotocol.io)"
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; MCPBot/1.0; +https://modelcontextprotocol.io)"
+)
 
 # --- LOGGING ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("url_injector_mcp")
 
+
 # --- RATE LIMITING ---
 class RateLimitMiddleware(BaseHTTPMiddleware):
+
     def __init__(self, app, max_requests=RATE_LIMIT, window_seconds=60):
         super().__init__(app)
         self.max_requests = max_requests
@@ -63,24 +65,32 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.request_counts[client_ip] = (count, ts)
         if count > self.max_requests:
             logger.warning(f"Rate limit exceeded for {client_ip}")
-            return JSONResponse({"detail": "Rate limit exceeded"},
-                                status_code=HTTP_429_TOO_MANY_REQUESTS)
+            return JSONResponse(
+                {"detail": "Rate limit exceeded"},
+                status_code=HTTP_429_TOO_MANY_REQUESTS
+            )
         return await call_next(request)
+
 
 # --- AUTHENTICATION ---
 class AuthMiddleware(BaseHTTPMiddleware):
+
     async def dispatch(self, request: Request, call_next):
         if request.url.path.startswith("/health"):
             return await call_next(request)
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer ") or auth.replace("Bearer ", "") != API_KEY:
             logger.warning("Unauthorized access attempt.")
-            return JSONResponse({"detail": "Unauthorized"},
-                                status_code=HTTP_401_UNAUTHORIZED)
+            return JSONResponse(
+                {"detail": "Unauthorized"},
+                status_code=HTTP_401_UNAUTHORIZED
+            )
         return await call_next(request)
+
 
 # --- MCP SERVER ---
 mcp = FastMCP("url-injector")
+
 
 # --- KEYWORD EXTRACTION ---
 def extract_keywords(text: str) -> List[str]:
@@ -92,9 +102,11 @@ def extract_keywords(text: str) -> List[str]:
     keywords = [w for w in words if w not in stopwords and len(w) > 2]
     return list(dict.fromkeys(keywords))  # deduplicate, preserve order
 
+
 # --- SIMPLE ASYNC CACHE FOR WEB SEARCH ---
 SEARCH_CACHE = {}
 CACHE_TTL = 600  # 10 minutes
+
 
 async def search_web(query: str) -> List[str]:
     now = time.time()
@@ -108,8 +120,12 @@ async def search_web(query: str) -> List[str]:
         return SEARCH_CACHE[query][1]
     urls = []
     try:
-        async with httpx.AsyncClient(timeout=10, headers={"User-Agent": USER_AGENT}) as client:
-            resp = await client.get(SEARCH_ENGINE + httpx.utils.quote(query))
+        async with httpx.AsyncClient(
+            timeout=10, headers={"User-Agent": USER_AGENT}
+        ) as client:
+            resp = await client.get(
+                SEARCH_ENGINE + httpx.utils.quote(query)
+            )
             soup = BeautifulSoup(resp.text, "html.parser")
             for a in soup.find_all("a", href=True):
                 href = a["href"]
@@ -120,6 +136,7 @@ async def search_web(query: str) -> List[str]:
     # Store in cache
     SEARCH_CACHE[query] = (now, urls)
     return urls
+
 
 # --- URL FILTERING ---
 def filter_urls(urls: List[str]) -> List[str]:
@@ -133,9 +150,14 @@ def filter_urls(urls: List[str]) -> List[str]:
             break
     return list(dict.fromkeys(filtered))  # deduplicate
 
+
 # --- PROMETHEUS METRICS ---
-REQUEST_COUNT = Counter('mcp_requests_total', 'Total MCP requests', ['endpoint'])
-REQUEST_LATENCY = Histogram('mcp_request_latency_seconds', 'Request latency', ['endpoint'])
+REQUEST_COUNT = Counter(
+    'mcp_requests_total', 'Total MCP requests', ['endpoint']
+)
+REQUEST_LATENCY = Histogram(
+    'mcp_request_latency_seconds', 'Request latency', ['endpoint']
+)
 
 def track_metrics(endpoint):
     def decorator(func):
@@ -146,6 +168,7 @@ def track_metrics(endpoint):
                 return await func(*args, **kwargs)
         return wrapper
     return decorator
+
 
 # --- MCP TOOL ---
 @mcp.tool()
@@ -171,18 +194,23 @@ async def inject_urls_into_prompt(user_prompt: str) -> str:
     filtered = filter_urls(all_urls)
     # 4. Format URLs and append to prompt
     if filtered:
-        url_section = "\n\nHere are some relevant resources:\n" + "\n".join(f"- {u}" for u in filtered)
+        url_section = (
+            "\n\nHere are some relevant resources:\n" +
+            "\n".join(f"- {u}" for u in filtered)
+        )
     else:
         url_section = "\n\n(No relevant resources found.)"
     augmented = user_prompt.strip() + url_section
     logger.info(f"Returning augmented prompt with {len(filtered)} URLs.")
     return augmented
 
+
 # --- HEALTH CHECK ---
 @mcp.custom_route("/health", methods=["GET"])
 @track_metrics("health")
 async def health_check(request: Request) -> PlainTextResponse:
     return PlainTextResponse("OK")
+
 
 # --- SERVER ENTRY POINT ---
 def build_app():
@@ -192,6 +220,7 @@ def build_app():
     app.add_middleware(RateLimitMiddleware)
     return app
 
+
 if __name__ == "__main__":
     logger.info("Starting url-injector-mcp server...")
     port = int(os.environ.get("PORT", 8000))
@@ -199,6 +228,6 @@ if __name__ == "__main__":
         transport="sse",
         host="0.0.0.0",
         port=port
-    ) 
+    )
 # Note: To change the port in MCP 1.x, set the PORT environment variable before running this script.
 # Example (PowerShell): $env:PORT=8001; python url_injector_mcp.py
