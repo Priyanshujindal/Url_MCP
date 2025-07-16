@@ -104,9 +104,9 @@ def extract_keywords(text: str) -> List[str]:
     ])
     words = re.findall(r"\b\w+\b", text.lower())
     keywords = [
-        w for w in words if w not in stopwords and len(w) > 2
-    ]
-    # deduplicate, preserve order
+    w for w in words if w not in stopwords and len(w) > 2
+]
+# deduplicate, preserve order
     return list(dict.fromkeys(keywords))
 
 
